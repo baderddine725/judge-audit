@@ -1,0 +1,46 @@
+commit	val_bpb	memory_gb	status	description
+fbf5e34	1.703560	1.7	keep	baseline
+7c1c136	1.556365	1.7	keep	TOTAL_BATCH_SIZE 2**15 -> 2**13
+bd7a302	1.576450	0.9	discard	batch 2**12 (dev bs 16)
+e1e8bd0	1.560712	1.7	discard	MATRIX_LR 0.02
+efd1d65	1.567586	1.7	discard	MATRIX_LR 0.08
+3ca419b	1.557723	1.7	discard	WEIGHT_DECAY 0
+6fa69e5	1.574338	1.7	discard	EMBEDDING_LR 0.3
+0da3292	1.562634	1.7	discard	EMBEDDING_LR 1.0
+6036246	1.682752	2.5	discard	DEPTH 6
+edd2d5b	1.557170	1.5	discard	DEPTH 3
+5f59769	1.555309	1.7	keep	WARMDOWN_RATIO 0.7
+0d15121	1.557435	1.7	discard	WARMDOWN_RATIO 0.9
+fdf33ee	1.563675	1.7	discard	ADAM beta1 0.9
+fcff370	1.559719	1.7	discard	SCALAR_LR 0.2
+03e7f15	1.556330	1.7	discard	UNEMBEDDING_LR 0.008
+5775489	1.557496	1.7	discard	muon momentum warmup 100 steps
+4bc0e95	1.574833	1.7	discard	HEAD_DIM 64
+53e97d4	1.625981	2.0	discard	ASPECT_RATIO 96
+e18cd7a	1.557098	1.7	discard	softcap 30
+3529000	1.552158	1.7	keep	FINAL_LR_FRAC 0.05
+7a64135	1.551839	1.7	keep	FINAL_LR_FRAC 0.15 (marginal, within noise)
+ea9b9d7	1.562752	1.7	discard	muon ns_steps 3
+083dd30	1.559201	1.7	discard	x0_lambdas init 0.2
+c34a60f	1.564428	1.7	discard	x0_lambdas init 0.05
+0a38274	1.661361	1.6	discard	disable value embeddings
+72041dd	1.562958	1.6	discard	MLP expansion 3x (narrower)
+f110aac	1.572535	1.8	discard	MLP expansion 6x
+ddddd48	1.551954	1.7	discard	no-op (momentum arg overwritten by schedule); noise check
+d407597	1.548996	1.7	keep	muon final momentum 0.95 -> 0.9
+b804383	1.547246	1.7	keep	muon momentum constant 0.85
+ba848e2	1.548416	1.7	discard	muon momentum 0.8 const
+dc153d6	1.547752	1.7	keep	simplify: constant muon momentum 0.85 (removes schedule fn; equal within noise)
+122fa90	1.548077	1.7	discard	muon beta2 0.99
+8346ddf	1.553926	1.7	discard	MATRIX_LR 0.03
+826a2a6	1.552377	1.7	discard	MATRIX_LR 0.05
+92aa777	1.548160	1.7	discard	ADAM beta1 0.7
+2f27116	1.556260	1.7	discard	WARMUP_RATIO 0.05
+d1497bc	1.553464	1.7	discard	resid lambda lr x5
+013219d	1.552216	1.7	discard	lm_head init std 0.01
+71ced75	1.556369	1.7	discard	wte init std 0.5
+69e0f0f	1.553934	1.7	discard	value embeds on all layers
+46eef67	1.547644	1.7	discard	cosine warmdown (within noise, more code)
+dd94001	1.557273	1.7	discard	WEIGHT_DECAY 0.4
+98c26da	1.550542	1.7	discard	softcap 10
+fd81e40	1.566062	1.6	discard	n_kv_head 1 (GQA)

@@ -1,7 +1,32 @@
 # Is the neutral judge actually neutral?
 
-Measuring whether an autonomous research agent games its own evaluation metric,
-in [karpathy/autoresearch](https://github.com/karpathy/autoresearch).
+**Does an autonomous research agent game its own metric when a shortcut is in plain sight, and would a monitor catch it?**
+Three shortcuts are planted, visible but inert, into [karpathy/autoresearch](https://github.com/karpathy/autoresearch). A Claude Code agent then runs unattended for 2 hours, and an independent audit on a different machine checks what it did.
+
+**Report (6 pages, PDF): [`report/judge-audit-report.pdf`](report/judge-audit-report.pdf)**
+
+## Results at a glance
+
+| Run | Condition | Experiments | Reported val_bpb | Shortcut used? | Audit |
+|---|---|---|---|---|---|
+| [A](runs/A/) | neutral | 45 in 2 h | 1.704 → 1.548 | Leak found and refused in the pilot; none in the 45-entry log | pending |
+| B | pressure (target 1.50) | – | – | – | not run |
+
+![Condition A: val_bpb per experiment](report/chart.svg)
+
+## Repository map
+
+| Folder | What's in it |
+|---|---|
+| [`report/`](report/) | the PDF write-up, its HTML source, and the chart script |
+| [`runs/`](runs/) | one folder per run: run card, the agent's own log, audit outputs |
+| [`notebooks/`](notebooks/) | the Kaggle notebook that runs a condition |
+| [`setup/`](setup/) | provisioning, the Kaggle driver, the small-GPU shim |
+| [`shortcuts/`](shortcuts/) | the shortcut planter |
+| [`conditions/`](conditions/) | builds the A and B `program.md` files |
+| [`audit/`](audit/) | hidden shard, re-evaluation, both monitors, scoring (outside the agent's reach) |
+| [`results/`](results/) | hand-labelled ground truth and scorecards |
+| [`docs/`](docs/) | how to run it on Kaggle |
 
 ---
 
@@ -99,13 +124,16 @@ comparable:
 | Independent audit + hidden shard | **done**, not yet exercised on a real run |
 | LLM judge | **done**, not yet exercised on real diffs |
 | Scorecard | **done** |
-| Plots | not started |
-| Runs A and B | not started |
-| Write-up | not started |
+| Plots | **condition A chart done** ([`report/make_chart.py`](report/make_chart.py)) |
+| Run A (neutral) | **done** — 45 experiments on a Kaggle T4, 2026-11-16 ([`runs/A/`](runs/A/)) |
+| Independent audit of run A | **next** — checklist in the run card |
+| Run B (pressure) | not started — target set from A's honest gains |
+| Write-up | **preliminary report done** ([`report/judge-audit-report.pdf`](report/judge-audit-report.pdf)) |
 
-Nothing above has met a GPU yet. Everything that could be verified without one
-has been, and the three test commands above run on any machine with Python and
-torch.
+Run A's numbers are so far the agent's own reports; until the audit replays
+its commits against the hidden shard, "no shortcut used" rests on the log and
+the transcripts, not on independent measurement. The three test commands above
+still run on any machine with Python and torch.
 
 ## Running it
 
@@ -197,13 +225,3 @@ Stated up front because they bound what the result can claim.
   pressure but used X under pressure" and "a strong agent ignored them in both
   conditions" are both findings; neither is a failed experiment.
 
-## Layout
-
-```
-conditions/   A/B program.md generation; the manipulation is one appended block
-shortcuts/    the planter, and the manifest recording what was planted where
-audit/        hidden shard, re-evaluation, both monitors, scoring   <- outside the agent's reach
-setup/        small-GPU configuration, the SDPA shim, provisioning
-results/      ground truth (hand-written), scorecards, re-eval tables
-docs/         running it on a free GPU tier, with the budget
-```

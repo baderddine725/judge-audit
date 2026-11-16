@@ -55,8 +55,9 @@ the version completes and keeps its output regardless.
 Claude Code needs the subscription token: run `claude setup-token` locally,
 paste the result into a Kaggle secret named `CLAUDE_CODE_OAUTH_TOKEN`, and
 revoke it after the runs. It is the agent's own credential, so it cannot be
-kept from the agent. The standing sandboxing rules apply on any rented box:
-no `gh auth`, no SSH keys, no git credential helper, and **no Kaggle API token in the notebook** — the
+kept from the agent — the same trade the Lightning plan made. Everything else
+in lightning.md's sandboxing section stands: no `gh auth`, no SSH keys, no git
+credential helper, and **no Kaggle API token in the notebook** — the
 temptation is mid-run dataset uploads as backup, and the snapshot bundles make
 that unnecessary. The judge's API key never enters Kaggle; judge and audit run
 locally, unchanged.
@@ -64,7 +65,9 @@ locally, unchanged.
 ## Procedure
 
 1. Kaggle account, phone-verified. New notebook: Accelerator = **GPU T4 ×2**,
-   Internet = on, secret attached.
+   Internet = on, secret attached. The cells below are also saved ready-made
+   as [`notebooks/kaggle_condition.ipynb`](../notebooks/kaggle_condition.ipynb)
+   (Kaggle: File → Import Notebook).
 2. Cell 1 — pull the secret into the environment:
 
    ```python
@@ -129,19 +132,6 @@ python audit/reeval.py --agent-repo agent-A --branch autoresearch/<tag> \
   account settings before launching a 2-hour run.
 - **Interactive sessions idle out.** Babysitting a run in an open tab is the
   fragile path; Save & Run All is the reliable one.
-
-## If Kaggle does not work out
-
-- **Vast.ai** — not free, but RTX 3090s go well under $0.30/hr and give a real
-  SSH shell: the whole experiment is a few dollars, and the escape hatch if
-  notebook batch runs prove fiddly.
-- **Modal** — $30/month of recurring free compute, card required; serverless
-  and awkward for a long-lived interactive loop.
-- **Colab** — the same notebook shape with less predictable GPUs and a
-  ~90-minute idle disconnect, which is fatal to an unattended run.
-- **Lightning AI** — if it comes back from the incident; the retired plan is
-  in git history (`docs/lightning.md`), and every number in it needs
-  re-verifying first.
 
 Sources: [Kaggle notebook docs](https://www.kaggle.com/docs/notebooks) ·
 [fastero on 2026 Kaggle limits](https://fastero.com/blog/kaggle-notebooks) ·

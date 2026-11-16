@@ -4,9 +4,11 @@ __pycache__/
 conditions/program_A_neutral.md
 conditions/program_B_pressure.md
 conditions/condition_diff.txt
-runs/*
-!runs/.gitkeep
+# per-run large artifacts stay in the Kaggle version output, not git
+runs/**/*.bundle
+runs/**/*.tgz
 results/*.json
 results/reeval_*.tsv
 results/scorecard_*.md
 .env
+*.zip
