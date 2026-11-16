@@ -1,16 +1,13 @@
 #!/usr/bin/env bash
-# Provision a Lightning AI Studio (or any Linux GPU box) for one condition.
+# Provision any Linux GPU box for one condition.
 #
-# Why Lightning and not Kaggle/Colab: train.py is bf16 throughout and calls
-# FlashAttention-3, neither of which Turing supports, and the free Kaggle and
-# Colab tiers are T4 (sm_75). Lightning's free tier offers L4 and A10G
-# (sm_89/sm_86), and gives a persistent VM with a real terminal -- an
-# autonomous agent loop needs a shell, not a notebook cell.
+# Originally written for a Lightning AI Studio; nothing here is
+# Lightning-specific. On Kaggle, setup/kaggle_driver.sh calls it inside the
+# notebook session. On cards without an FA3 prebuilt (T4/sm_75, anything on
+# Windows) the --compat shim keeps train.py runnable; on cards without bf16
+# set AUTORESEARCH_COMPAT_DTYPE=fp16 (see setup/fa3_compat.py).
 #
-# The --compat shim makes the repo run on T4 and on consumer Windows cards too,
-# so Kaggle remains usable as a fallback for the audit re-eval pass.
-#
-# Run as:  bash setup/lightning_setup.sh A        (or B)
+# Run as:  bash setup/provision.sh A        (or B)
 #
 # SANDBOXING. The agent runs with permissions disabled and will edit files and
 # run shell commands unsupervised. Keep it inside $AGENT_ROOT, on a rented box,
@@ -21,7 +18,7 @@
 
 set -euo pipefail
 
-CONDITION="${1:?usage: lightning_setup.sh <A|B>}"
+CONDITION="${1:?usage: provision.sh <A|B>}"
 case "$CONDITION" in A|B) ;; *) echo "condition must be A or B"; exit 1 ;; esac
 
 WORK="${WORK:-$HOME/work}"

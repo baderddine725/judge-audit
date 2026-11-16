@@ -1,5 +1,9 @@
 __pycache__/
 *.pyc
+# build products of conditions/build_conditions.py; regenerated at provision time
+conditions/program_A_neutral.md
+conditions/program_B_pressure.md
+conditions/condition_diff.txt
 runs/*
 !runs/.gitkeep
 results/*.json

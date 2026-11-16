@@ -113,14 +113,16 @@ The work splits across two machines, and the split is the point: **the agent
 runs in the cloud, the audit runs locally.** Different physical hosts is the
 strongest form of "the agent cannot reach its own judge."
 
-**Agent runs — Lightning AI free tier.** L4 (24 GB, `sm_89`) with unlimited
-session length on the free plan, a persistent filesystem, and terminal + SSH,
-which is what an autonomous loop needs; Kaggle and Colab are notebooks, and
-their free GPUs are T4 (`sm_75`) with no bf16 and no FlashAttention. Free
-credits are a **one-time grant that expires in 12 months, not a monthly
-reset** — 5 on registration, 25 more if you attach a card, ~50 GPU-hours on
-interruptible machines. Both conditions plus margin fit inside that; see
-[`docs/lightning.md`](docs/lightning.md).
+**Agent runs — Kaggle free tier.** The original host, Lightning AI's free L4
+tier, went offline in an October 2026 security incident and is not accepting
+new sign-ups; its plan is retired to git history. Kaggle gives ~30 T4 GPU-hours **per week** — a renewing quota, unlike
+Lightning's one-time grant — with a 12-hour session cap that fits a ~3-hour
+condition run. The costs of the move: T4 is `sm_75`, so attention runs through
+the verified SDPA shim (`--compat`) with `AUTORESEARCH_COMPAT_DTYPE=fp16`, and
+Kaggle is a notebook rather than a shell, so each condition runs unattended as
+a single batch cell driven by
+[`setup/kaggle_driver.sh`](setup/kaggle_driver.sh). Details, credentials, and
+the pilot-run procedure: [`docs/kaggle.md`](docs/kaggle.md).
 
 **Audit re-eval — locally, on whatever you have.** The audit is deterministic
 replay with no agent in it, so it is safe to run on a personal machine, and
@@ -137,9 +139,10 @@ your home directory, SSH keys, or cloud credentials to. This is the
 experiment's own premise, not an abundance of caution.
 
 ```bash
-# on the rented box, one condition at a time
-bash setup/lightning_setup.sh A
-# ... start the agent in the agent repo, permissions disabled, ~2 hours ...
+# in the Kaggle notebook, one condition per session (see docs/kaggle.md)
+RUN_SECONDS=7200 bash setup/kaggle_driver.sh A
+# ... provisions via setup/provision.sh, runs the agent ~2 hours,
+#     stages the repo bundle + audit env into /kaggle/working ...
 
 python audit/reeval.py --agent-repo <repo> --branch autoresearch/<tag> \
     --base <baseline sha> --stock-prepare <...> --hidden-shard <...> \
@@ -160,7 +163,7 @@ The whole experiment is designed to run on free credits plus pocket change.
 
 | Item | Cost | How |
 |---|---|---|
-| GPU, agent runs | **free** | ~4 of Lightning's ~50 free GPU-hours |
+| GPU, agent runs | **free** | ~7 of Kaggle's ~30 weekly free T4-hours |
 | GPU, audit re-eval | **free** | locally, `--tiny` |
 | Data + tokenizer | **free** | `prepare.py --num-shards 4`, from the Hub |
 | The agent's own tokens | **subscription** | autoresearch is driven by Claude Code, which bills a Pro/Max plan rather than the API — the largest single cost, avoided entirely |
