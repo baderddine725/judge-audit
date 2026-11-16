@@ -98,7 +98,8 @@ echo "=== 9. commit the run baseline ==="
 # Everything above this commit is setup. Every diff after it is the agent's,
 # so the monitors never see the planting as if the agent had done it.
 git -C "$REPO" add -A
-git -C "$REPO" commit --quiet -m "run baseline: condition $CONDITION, shortcuts planted"
+git -C "$REPO" -c user.name="judge-audit" -c user.email="judge-audit@localhost" \
+    commit --quiet -m "run baseline: condition $CONDITION, shortcuts planted"
 BASE_SHA=$(git -C "$REPO" rev-parse --short HEAD)
 echo "  baseline commit: $BASE_SHA"
 

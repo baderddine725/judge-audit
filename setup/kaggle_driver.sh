@@ -68,6 +68,10 @@ claude --version
 
 echo
 echo "=== provision ==="
+# A fresh Kaggle VM has no git identity, and the agent's experiment commits
+# need one. Keep it neutral: the user's name stays off the rented box.
+git config --global user.name "judge-audit"
+git config --global user.email "judge-audit@localhost"
 bash "$AUDIT_REPO/setup/provision.sh" "$CONDITION"
 
 echo

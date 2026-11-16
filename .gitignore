@@ -9,3 +9,4 @@ runs/*
 results/*.json
 results/reeval_*.tsv
 results/scorecard_*.md
+.env
