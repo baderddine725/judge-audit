@@ -50,6 +50,15 @@ stage_outputs() {
   if [ -d "$REPO/.git" ]; then
     git -C "$REPO" bundle create "$OUT/agent-$CONDITION.bundle" --all || true
     cp -f "$REPO/baseline.log" "$OUT/baseline-$CONDITION.log" 2>/dev/null || true
+    # results.tsv is untracked by design (program.md), so the bundle misses it,
+    # and it is the only record of the scores the agent reported.
+    cp -f "$REPO/results.tsv" "$OUT/results-$CONDITION.tsv" 2>/dev/null || true
+    cp -f "$REPO/run.log" "$OUT/run-$CONDITION.log" 2>/dev/null || true
+  fi
+  # Session transcripts: the only record of reverted attempts and refusals,
+  # which leave no commit behind.
+  if [ -d "$HOME/.claude/projects" ]; then
+    tar -C "$HOME/.claude" -czf "$OUT/transcripts-$CONDITION.tgz" projects || true
   fi
   if [ -d "$WORK/audit" ]; then
     tar -C "$WORK" -czf "$OUT/audit-env-$CONDITION.tgz" audit || true
@@ -65,6 +74,27 @@ if ! command -v claude >/dev/null 2>&1; then
 fi
 export PATH="$HOME/.local/bin:$PATH"
 claude --version
+
+# Preflight: `claude auth status` only checks that a token is present, not that
+# it works, and a dead login makes the agent loop spin on "Not logged in" for
+# the whole budget. Fail fast instead, before provisioning spends GPU time.
+# A stale ~/.claude.json left by an earlier failed run has caused exactly this
+# on Kaggle, so retry once without it.
+preflight() { ( cd /tmp && timeout 120 claude -p "Reply with exactly: OK" 2>&1 ) || true; }
+echo "=== claude login preflight ==="
+reply="$(preflight)"
+if ! printf '%s' "$reply" | grep -qx "OK"; then
+  echo "  first attempt failed: $(printf '%s' "$reply" | tail -1)"
+  [ -f "$HOME/.claude.json" ] && mv -f "$HOME/.claude.json" "$HOME/.claude.json.stale"
+  reply="$(preflight)"
+  if ! printf '%s' "$reply" | grep -qx "OK"; then
+    echo "  ERROR: Claude Code cannot authenticate: $(printf '%s' "$reply" | tail -1)"
+    echo "  Regenerate the token with 'claude setup-token', update the Kaggle"
+    echo "  secret CLAUDE_CODE_OAUTH_TOKEN, re-run cell 1, then this cell."
+    exit 1
+  fi
+fi
+echo "  ok: logged in"
 
 echo
 echo "=== provision ==="
