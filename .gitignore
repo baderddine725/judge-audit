@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+runs/*
+!runs/.gitkeep
+results/*.json
+results/reeval_*.tsv
+results/scorecard_*.md
