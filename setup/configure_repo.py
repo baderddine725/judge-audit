@@ -12,6 +12,11 @@ Two independent transforms:
              runs on cards the kernels hub does not serve: Turing (Kaggle and
              Colab free tiers are T4, sm_75) and anything on Windows.
 
+  --tiny     Applied on top of --shrink, for 4GB cards. Cuts the micro-batch
+             so the unchunked cross-entropy logits tensor fits. Intended for
+             running the AUDIT locally; the agent should not run on a machine
+             holding your credentials.
+
 Both are applied BEFORE the run baseline commit, so neither shows up in any
 diff the monitors score.
 
@@ -59,6 +64,28 @@ SHRINK = [
      "banded attention is inefficient at short context"),
 ]
 
+# Applied ON TOP of --shrink, for 4GB consumer cards (RTX 2050/3050, GTX 1650).
+#
+# The binding constraint on a small card is not the model -- at DEPTH=4 the
+# weights, gradients and optimizer state together are only ~400MB. It is the
+# loss head. train.py computes an unchunked
+#   F.cross_entropy(logits.view(-1, 32768), ...)
+# so the full (DEVICE_BATCH_SIZE * MAX_SEQ_LEN, vocab_size) logits tensor is
+# materialized, then upcast to fp32 inside log_softmax, and its gradient is
+# held for the backward pass. At batch 32, seq 256: 537MB bf16 + 1074MB fp32
+# + 537MB grad = ~2.1GB transient, which OOMs a 4GB card that is also driving
+# a display. At batch 8 the same three terms are ~550MB.
+#
+# grad_accum_steps absorbs the change (TOTAL_BATCH_SIZE is unchanged, so the
+# optimizer sees identical batches), which means this costs throughput but
+# does not alter the training math.
+TINY = [
+    ("train.py",
+     "DEVICE_BATCH_SIZE = 32  # per-device batch size (reduce if OOM)",
+     "DEVICE_BATCH_SIZE = 8  # per-device batch size (reduce if OOM)",
+     "4GB: logits tensor 2.1GB -> 0.5GB; grad_accum absorbs it"),
+]
+
 COMPAT_OLD = """from kernels import get_kernel
 cap = torch.cuda.get_device_capability()
 # varunneal's FA3 is Hopper only, use kernels-community on non-Hopper GPUs
@@ -104,6 +131,8 @@ def main():
     ap.add_argument("--repo", required=True, type=pathlib.Path)
     ap.add_argument("--shrink", action="store_true")
     ap.add_argument("--compat", action="store_true")
+    ap.add_argument("--tiny", action="store_true",
+                    help="4GB cards; requires --shrink")
     ap.add_argument("--check", action="store_true",
                     help="report what would change without writing")
     args = ap.parse_args()
@@ -111,8 +140,13 @@ def main():
     repo = args.repo.expanduser().resolve()
     if not (repo / "train.py").exists():
         sys.exit("%s does not look like an autoresearch repo" % repo)
-    if not (args.shrink or args.compat):
-        sys.exit("pass --shrink and/or --compat")
+    if not (args.shrink or args.compat or args.tiny):
+        sys.exit("pass --shrink, --compat and/or --tiny")
+    if args.tiny and not args.shrink:
+        text = (repo / "train.py").read_text(encoding="utf-8")
+        if "DEVICE_BATCH_SIZE = 128" in text:
+            sys.exit("--tiny patches the shrunk DEVICE_BATCH_SIZE (32), but this "
+                     "repo still has the stock 128. Pass --shrink --tiny together.")
 
     problems = 0
 
@@ -124,6 +158,30 @@ def main():
                 problems += 1
                 print("  MISSING  %-11s %s" % (fname, old.split("=")[0].strip()))
                 print("           upstream text has changed; update SHRINK in this file")
+            else:
+                print("  %-8s %-11s %-22s (%s)"
+                      % (status, fname, new.split("#")[0].strip(), why))
+
+    if args.tiny:
+        print("\ntiny (4GB):")
+        for fname, old, new, why in TINY:
+            status = patch_file(repo / fname, old, new, args.check)
+            # TINY patches lines that SHRINK produces. Under --check nothing was
+            # written, so the anchor is legitimately absent; look for the stock
+            # line SHRINK would have turned into it and call that pending, not a
+            # failure. Without this, --shrink --tiny --check always reports a
+            # false MISSING.
+            if status == "MISSING" and args.check and args.shrink:
+                pred = next((s_old for s_file, s_old, s_new, _ in SHRINK
+                             if s_file == fname and s_new == old), None)
+                if pred and pred in (repo / fname).read_text(encoding="utf-8"):
+                    print("  pending  %-11s %-22s (applied after --shrink)"
+                          % (fname, new.split("#")[0].strip()))
+                    continue
+            if status == "MISSING":
+                problems += 1
+                print("  MISSING  %-11s %s" % (fname, old.split("=")[0].strip()))
+                print("           expected the shrunk value; run --shrink first")
             else:
                 print("  %-8s %-11s %-22s (%s)"
                       % (status, fname, new.split("#")[0].strip(), why))

@@ -109,12 +109,32 @@ torch.
 
 ## Running it
 
-Hardware: Lightning AI's free tier (L4 / A10G, `sm_89`/`sm_86`) with a
-persistent VM and a real terminal. Kaggle and Colab free tiers are T4
-(`sm_75`), which supports neither bf16 nor FlashAttention, and are notebooks
-rather than shells — an autonomous agent loop needs a shell. The SDPA shim
-(`--compat`) makes the repo run on T4 and on consumer Windows cards anyway, so
-those remain usable for the audit pass.
+The work splits across two machines, and the split is the point: **the agent
+runs in the cloud, the audit runs locally.** Different physical hosts is the
+strongest form of "the agent cannot reach its own judge."
+
+**Agent runs — Lightning AI free tier.** L4 (24 GB, `sm_89`) with unlimited
+session length on the free plan, a persistent filesystem, and terminal + SSH,
+which is what an autonomous loop needs; Kaggle and Colab are notebooks, and
+their free GPUs are T4 (`sm_75`) with no bf16 and no FlashAttention. Free
+credits are a **one-time grant that expires in 12 months, not a monthly
+reset** — 5 on registration, 25 more if you attach a card, ~50 GPU-hours on
+interruptible machines. Both conditions plus margin fit inside that; see
+[`docs/lightning.md`](docs/lightning.md).
+
+**Audit re-eval — locally, on whatever you have.** The audit is deterministic
+replay with no agent in it, so it is safe to run on a personal machine, and
+running it there spends no credits. `--compat --tiny` makes it fit a 4 GB
+consumer card: the binding constraint is not compute capability but the
+unchunked `F.cross_entropy` at [`train.py:288`](https://github.com/karpathy/autoresearch/blob/master/train.py#L288),
+which materializes a `batch × seq × 32768` logits tensor and upcasts it to
+fp32 — 2.1 GB at `DEVICE_BATCH_SIZE=32`, 0.5 GB at 8.
+
+**Never run the agent on a machine you care about.** `program.md` instructs it
+to disable permissions and NEVER STOP, and the entire question under test is
+whether it games its own evaluation. That is precisely the process not to give
+your home directory, SSH keys, or cloud credentials to. This is the
+experiment's own premise, not an abundance of caution.
 
 ```bash
 # on the rented box, one condition at a time
@@ -134,9 +154,23 @@ python audit/score.py --ground-truth results/ground_truth.tsv \
     --reeval results/reeval_A.tsv --condition A --markdown results/scorecard_A.md
 ```
 
-Run the agent sandboxed, on a rented box, with no credentials beyond the API
-key it needs. Watch API spend alongside GPU spend —
-`audit/llm_judge.py --dry-run` prices the judging pass before you commit to it.
+## Cost
+
+The whole experiment is designed to run on free credits plus pocket change.
+
+| Item | Cost | How |
+|---|---|---|
+| GPU, agent runs | **free** | ~4 of Lightning's ~50 free GPU-hours |
+| GPU, audit re-eval | **free** | locally, `--tiny` |
+| Data + tokenizer | **free** | `prepare.py --num-shards 4`, from the Hub |
+| The agent's own tokens | **subscription** | autoresearch is driven by Claude Code, which bills a Pro/Max plan rather than the API — the largest single cost, avoided entirely |
+| LLM judge | **~$0.25–0.50** | ~60 diffs; rubric is prompt-cached, Batches API halves it |
+
+The judge is the only line that touches the API, and it is the cheapest part
+of the project — `audit/llm_judge.py --dry-run` prices the pass from real
+token counts before you spend anything. Watch GPU spend the same way: the
+agent loop runs unattended for hours by design, so set a credit alert rather
+than trusting yourself to check.
 
 ## Known limitations
 
@@ -168,4 +202,5 @@ shortcuts/    the planter, and the manifest recording what was planted where
 audit/        hidden shard, re-evaluation, both monitors, scoring   <- outside the agent's reach
 setup/        small-GPU configuration, the SDPA shim, provisioning
 results/      ground truth (hand-written), scorecards, re-eval tables
+docs/         running it on a free GPU tier, with the budget
 ```
