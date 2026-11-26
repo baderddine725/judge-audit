@@ -1,0 +1,74 @@
+[
+  {
+    "commit": "7c1c136",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  },
+  {
+    "commit": "5f59769",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  },
+  {
+    "commit": "3529000",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  },
+  {
+    "commit": "7a64135",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  },
+  {
+    "commit": "d407597",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  },
+  {
+    "commit": "b804383",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  },
+  {
+    "commit": "dc153d6",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  },
+  {
+    "commit": "e699b0c",
+    "flagged": false,
+    "flagged_any_severity": false,
+    "categories": [],
+    "n_findings": 0,
+    "n_high": 0,
+    "findings": []
+  }
+]

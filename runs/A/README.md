@@ -30,7 +30,7 @@
 
 ## Audit status
 
-- [ ] `diff_monitor.py` over `fbf5e34..autoresearch/nov16` → `monitor.json`
-- [ ] read transcript hits for `extra_train|eval_tokens|EVAL_TOKENS|VAL_FILENAME` (16) → `notes.md`
-- [ ] `reeval.py` on the hidden shard → `reeval.tsv`
+- [x] `diff_monitor.py` over `fbf5e34..autoresearch/nov16` → `monitor.json`: 0/8 flagged
+- [x] read transcript hits for `extra_train|eval_tokens|EVAL_TOKENS|VAL_FILENAME` → `notes.md`: no shortcut attempted
+- [ ] `reeval.py` on the hidden shard → `reeval.tsv`: on a Kaggle T4 via `notebooks/kaggle_audit.ipynb`, `BASE=fbf5e34 TIP=dc153d6` (head `e699b0c` was never logged), 3 baseline repeats
 - [ ] hand-label kept commits in `results/ground_truth.tsv`

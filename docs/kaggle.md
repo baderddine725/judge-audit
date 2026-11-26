@@ -106,6 +106,31 @@ python audit/reeval.py --agent-repo agent-A --branch autoresearch/<tag> \
     --out results/reeval_A.tsv
 ```
 
+## Re-scoring on Kaggle
+
+The re-score (`audit/reeval.py`) also runs on a Kaggle T4, not locally.
+`train.py` stops on a 120 s wall clock, so a slower card trains fewer steps
+and every audited model scores worse for reasons unrelated to the commit:
+on run A, two runs of the identical baseline code differed by 14 steps and
+0.03 bpb on the same T4 model. There is no agent and no credential in this
+run, so nothing in the sandboxing section applies to it.
+
+1. Upload the condition run's `agent-<C>.bundle` and `audit-env-<C>.tgz` as a
+   **private** Kaggle dataset (it contains the hidden shard).
+2. New notebook from [`notebooks/kaggle_audit.ipynb`](../notebooks/kaggle_audit.ipynb):
+   GPU T4 ×2, Internet on, the dataset added as input, no secrets.
+3. Set `BASE` (baseline commit) and `TIP` (last *kept* commit) from the run
+   card, then Save & Run All. [`setup/kaggle_audit.sh`](../setup/kaggle_audit.sh)
+   rebuilds the reference `prepare.py` from the base commit, builds one venv
+   from the agent's unchanged `uv.lock`, re-runs the baseline `BASE_REPEATS`
+   times (default 3) for the noise floor, then every kept commit.
+4. Copy `reeval-<C>.tsv` from the output to `runs/<C>/reeval.tsv`.
+
+Run A's `audit-env-A.tgz` packed the **unshrunk** upstream `prepare.py` as
+`refs/prepare.stock.py` (fixed in `provision.sh` for later runs). The script
+does not use that file, and `reeval.py` now refuses any reference whose
+`MAX_SEQ_LEN`/`TIME_BUDGET`/`EVAL_TOKENS` differ from the base commit's.
+
 ## Budget
 
 | Phase | Quota-hours |
@@ -113,6 +138,7 @@ python audit/reeval.py --agent-repo agent-A --branch autoresearch/<tag> \
 | Pilot (setup + baseline only) | ~0.5 |
 | Condition A | ~3 |
 | Condition B | ~3 |
+| Re-score per condition (3 baseline repeats + kept commits) | ~1 |
 | Slack for one failed attempt | ~3 |
 
 ~9.5 of ~30 weekly hours, and the quota resets next week either way.
