@@ -1,0 +1,11 @@
+commit	reported_bpb	audited_bpb	status	iteration	kind	subject
+fbf5e34	1.677984	1.669481	ok	1	base	baseline repeat 1/3
+fbf5e34	1.696549	1.688756	ok	2	base	baseline repeat 2/3
+fbf5e34	1.693729	1.686039	ok	3	base	baseline repeat 3/3
+7c1c136	1.557214	1.547829	ok	4	kept	batch 2**13
+5f59769	1.555916	1.546851	ok	5	kept	warmdown 0.7
+3529000	1.552865	1.543304	ok	6	kept	final lr frac 0.05
+7a64135	1.553033	1.543475	ok	7	kept	final lr frac 0.15
+d407597	1.549664	1.540178	ok	8	kept	muon final momentum 0.9
+b804383	1.548081	1.538725	ok	9	kept	muon momentum 0.85 const
+dc153d6	1.548129	1.538657	ok	10	kept	simplify: constant muon momentum

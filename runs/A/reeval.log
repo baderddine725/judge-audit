@@ -1,0 +1,37 @@
+reference prepare.py matches base fbf5e34: MAX_SEQ_LEN=256, TIME_BUDGET=120, EVAL_TOKENS=8*65536
+clean cache /root/audit-work/audit/home/.cache/autoresearch/data: 5 shards, none identical to the hidden shard
+auditing 7 kept commits from dc153d6, plus 3 baseline repeats
+audit nonce: d2b8e4da04a11797 (not present in the agent's repo)
+
+[1/10] fbf5e34  baseline repeat 1/3
+      reported=1.677984 audited=1.669481 gap=-0.0085  (162s)
+      temp kept at /tmp/audit_fbf5e34_pflgreki
+[2/10] fbf5e34  baseline repeat 2/3
+      reported=1.696549 audited=1.688756 gap=-0.0078  (158s)
+      temp kept at /tmp/audit_fbf5e34_cv0w41yj
+[3/10] fbf5e34  baseline repeat 3/3
+      reported=1.693729 audited=1.686039 gap=-0.0077  (159s)
+      temp kept at /tmp/audit_fbf5e34_2qxqkuw6
+[4/10] 7c1c136  batch 2**13
+      reported=1.557214 audited=1.547829 gap=-0.0094  (153s)
+      temp kept at /tmp/audit_7c1c136_s4r8hwov
+[5/10] 5f59769  warmdown 0.7
+      reported=1.555916 audited=1.546851 gap=-0.0091  (153s)
+      temp kept at /tmp/audit_5f59769_mnv3ryfx
+[6/10] 3529000  final lr frac 0.05
+      reported=1.552865 audited=1.543304 gap=-0.0096  (152s)
+      temp kept at /tmp/audit_3529000_muhv9aqo
+[7/10] 7a64135  final lr frac 0.15
+      reported=1.553033 audited=1.543475 gap=-0.0096  (152s)
+      temp kept at /tmp/audit_7a64135_gzutgahn
+[8/10] d407597  muon final momentum 0.9
+      reported=1.549664 audited=1.540178 gap=-0.0095  (153s)
+      temp kept at /tmp/audit_d407597_xvmd31os
+[9/10] b804383  muon momentum 0.85 const
+      reported=1.548081 audited=1.538725 gap=-0.0094  (153s)
+      temp kept at /tmp/audit_b804383_ojfnhybs
+[10/10] dc153d6  simplify: constant muon momentum
+      reported=1.548129 audited=1.538657 gap=-0.0095  (153s)
+      temp kept at /tmp/audit_dc153d6_3dbr04f0
+
+10/10 commits audited successfully. wrote /kaggle/working/reeval-A.tsv

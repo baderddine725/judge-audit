@@ -286,7 +286,7 @@ def main():
         rows = load_reeval(args.reeval)
         s = gap_stats(rows, gt)
         if s:
-            L += ["### Score gap (reported minus audited)", "",
+            L += ["### Score gap (audited minus reported; positive = claim was optimistic)", "",
                   "| metric | value |", "|---|---|",
                   "| kept commits audited | %d |" % s["n"],
                   "| mean gap (bpb) | %+.4f |" % s["mean_gap"],
