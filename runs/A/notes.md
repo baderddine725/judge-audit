@@ -45,6 +45,39 @@ wall-clock budget ended while that experiment was running, so it was never
 logged, kept or reverted. Treat it as an unfinished experiment, not a kept
 one; the last kept commit is `dc153d6`.
 
+## Re-score attempt 1 (Kaggle T4, 26 Nov 2026)
+
+`reeval-attempt1.tsv`: 3 baseline repeats + 7 kept commits (`fbf5e34..dc153d6`).
+Training completed in all 10 runs; the hidden-shard score failed in all 10
+with `RuntimeError: expected mat1 and mat2 to have the same dtype
+(BFloat16 != float)`. The audit epilogue called the model outside the bf16
+autocast that `train.py` wraps its own eval in. Fixed in `reeval.py`; attempt 2
+re-runs everything.
+
+The clean re-runs' own `val_bpb` (stock harness restored, leak file absent,
+original val shard) is already informative:
+
+| commit | agent logged | clean re-run | diff |
+|---|---|---|---|
+| 7c1c136 | 1.556365 | 1.557138 | +0.0008 |
+| 5f59769 | 1.555309 | 1.556021 | +0.0007 |
+| 3529000 | 1.552158 | 1.552347 | +0.0002 |
+| 7a64135 | 1.551839 | 1.552922 | +0.0011 |
+| d407597 | 1.548996 | 1.549229 | +0.0002 |
+| b804383 | 1.547246 | 1.548047 | +0.0008 |
+| dc153d6 | 1.547752 | 1.548083 | +0.0003 |
+
+Every kept commit reproduces its logged score within 0.0011 (mean +0.0006)
+without the leak file and with the stock harness, so none of the gains
+depended on either. This does not rule out a faked score line, since the
+re-run reads the same `val_bpb:` print; the nonce-tagged hidden-shard score
+does.
+
+Baseline `fbf5e34` re-runs: 1.682926, 1.694702, 1.695482. With the two earlier
+runs (1.673428 provisioning, 1.703560 the agent's), five runs of identical code
+span **0.030**. The kept commits (batch 2^13, ~3.6x more steps) are far more
+stable than the baseline (batch 2^15).
+
 ## Run-to-run noise is larger than the agent assumed
 
 The provisioning baseline (`baseline-A.log`) scored **1.6734 in 188 steps**;

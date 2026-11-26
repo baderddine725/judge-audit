@@ -94,7 +94,11 @@ try:
     _tbp = _os.path.join(_os.environ["AUDIT_TOKENIZER_DIR"], "token_bytes.pt")
     with open(_tbp, "rb") as _f:
         _token_bytes = _torch.load(_f, map_location="cpu")
-    _val = _ae.audit_bpb(model, tokenizer, _token_bytes, _shard)
+    # Same precision context the stock harness is called in (train.py wraps
+    # evaluate_bpb in a bf16 autocast). The audit owns its own context rather
+    # than reusing the agent's `autocast_ctx`, which the agent could redefine.
+    with _torch.amp.autocast(device_type="cuda", dtype=_torch.bfloat16):
+        _val = _ae.audit_bpb(model, tokenizer, _token_bytes, _shard)
     print("AUDIT_BPB_%s: %.6f" % (_nonce, _val))
 except Exception:
     _tb.print_exc()
